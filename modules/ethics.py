@@ -86,51 +86,61 @@ def get_ethics_questions():
         {
             'id': 'drake_rating',
             'title': 'Drake Listeners',
+            'description': 'Would it be ethical to charge different auto insurance rates based on whether someone primarily listens to Drake\'s music?',
             'ethical': False
         },
         {
             'id': 'kendrick_rating',
             'title': 'Kendrick Listeners',
+            'description': 'Would it be ethical to charge different auto insurance rates based on whether someone primarily listens to Kendrick Lamar\'s music?',
             'ethical': False
         },
         {
             'id': 'age_rating',
             'title': 'Driver Age',
+            'description': 'Would it be ethical to charge different auto insurance rates based on a driver\'s age?',
             'ethical': True
         },
         {
             'id': 'vehicle_rating',
             'title': 'Vehicle Type',
+            'description': 'Would it be ethical to charge different auto insurance rates based on the type of vehicle a person drives (sports car, sedan, SUV, etc.)?',
             'ethical': True
         },
         {
             'id': 'religion_rating',
             'title': 'Religion',
+            'description': 'Would it be ethical to charge different auto insurance rates based on a person\'s religion?',
             'ethical': False
         },
         {
             'id': 'race_rating',
             'title': 'Race/Ethnicity',
+            'description': 'Would it be ethical to charge different auto insurance rates based on a person\'s race or ethnicity?',
             'ethical': False
         },
         {
             'id': 'experience_rating',
             'title': 'Years of Driving Experience',
+            'description': 'Would it be ethical to charge different auto insurance rates based on how many years a person has been driving?',
             'ethical': True
         },
         {
             'id': 'multiproduct_rating',
             'title': 'Multi-Product Discount',
+            'description': 'Would it be ethical to offer discounted auto insurance rates to customers who also purchase other insurance products from the same company?',
             'ethical': True
         },
         {
             'id': 'speeding_rating',
             'title': 'Speeding Convictions',
+            'description': 'Would it be ethical to charge different auto insurance rates based on a person\'s history of speeding tickets and convictions?',
             'ethical': True
         },
         {
             'id': 'driving_rating',
             'title': 'Driving History',
+            'description': 'Would it be ethical to charge different auto insurance rates based on a person\'s past driving record (accidents, tickets, etc.)?',
             'ethical': True
         }
     ]

@@ -7,10 +7,10 @@ from modules.driver_comparison import demonstrate_driver_comparison
 from modules.premium_calculation import demonstrate_premium_calculation
 from modules.ethics import grade_ethics_answers
 
-
 def create_server_function():
-    """Creates and returns the server function for the Shiny app"""
-
+    """
+    Creates and returns the server function for the Shiny app
+    """
     def server(input, output, session):
         # Mobile detection reactive value
         is_mobile = reactive.Value(False)
@@ -377,32 +377,64 @@ def create_server_function():
 
                 return text
 
-        # Ethics of Rating Module
+        # Ethics Rating Module - Updated for mobile
         @reactive.Calc
-        def ethics_answers():
-            """Collects all the ethics module answers"""
-            return {
-                'drake_rating': input.drake_rating(),
-                'kendrick_rating': input.kendrick_rating(),
-                'age_rating': input.age_rating(),
-                'vehicle_rating': input.vehicle_rating(),
-                'religion_rating': input.religion_rating(),
-                'race_rating': input.race_rating(),
-                'experience_rating': input.experience_rating(),
-                'multiproduct_rating': input.multiproduct_rating(),
-                'speeding_rating': input.speeding_rating(),
-                'driving_rating': input.driving_rating()
+        def calculate_ethics_grade():
+            # These are the "model answers" based on general insurance standards
+            model_answers = {
+                'drake_rating': False,  # Not appropriate to use Drake listening as a rating factor
+                'kendrick_rating': False,  # Not appropriate to use Kendrick listening as a rating factor
+                'age_rating': True,  # Age is a commonly used rating factor
+                'vehicle_rating': True,  # Vehicle type is a commonly used rating factor
+                'religion_rating': False,  # Religion is not appropriate
+                'race_rating': False,  # Race/ethnicity is not appropriate
+                'experience_rating': True,  # Years of driving experience is a valid rating factor
+                'multiproduct_rating': True,  # Multi-product discount is a common and accepted practice
+                'speeding_rating': True,  # Speeding convictions are directly related to driving risk
+                'driving_rating': True,  # Driving history is universally used
             }
 
+            # Count correct answers
+            correct = 0
+            total = len(model_answers)
+
+            # Track incorrect answers
+            incorrect = []
+
+            for var, model_answer in model_answers.items():
+                user_answer = getattr(input, var)()
+                if user_answer == model_answer:
+                    correct += 1
+                else:
+                    # Format the variable name for displaying
+                    var_formatted = var.replace('_rating', '').replace('_', ' ').title()
+                    incorrect.append(var_formatted)
+
+            # Calculate score out of 10
+            score = round(correct / total * 10)
+
+            # Generate feedback based on score
+            if score >= 9:
+                feedback = "Excellent! You have a strong understanding of ethical rating considerations."
+            elif score >= 7:
+                feedback = "Good work! You understand most key ethical rating principles."
+            elif score >= 5:
+                feedback = "You're on the right track. Consider how these relate to risk vs. discrimination."
+            else:
+                feedback = "Review how insurers balance predictive value with social fairness."
+
+            # Add specific feedback if there were incorrect answers
+            if incorrect:
+                feedback += f" Reconsider: {', '.join(incorrect)}."
+
+            return score, feedback, correct, total
+
+        # Display ethics grade output
         @output
         @render.ui
         @reactive.event(input.grade_ethics)
         def ethics_grade_output():
-            grade_results = grade_ethics_answers(ethics_answers())
-            score = grade_results['score']
-            feedback = grade_results['feedback']
-            correct = grade_results['correct']
-            total = grade_results['total']
+            score, feedback, correct, total = calculate_ethics_grade()
 
             # Simplified for mobile
             if is_mobile.get():
