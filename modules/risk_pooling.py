@@ -86,17 +86,50 @@ def demonstrate_risk_pooling(accident_probability=0.05, num_policyholders=100, s
             fontsize_title = 18
             fontsize_labels = 16
             fontsize_annotations = 14
+            point_size = 70  # Size for scatter points
 
-            # PLOT 1: Simplified visualization for mobile
-            # Just show two bars - potential loss vs premium
-            bars1 = ax1.bar(
-                ['Risk', 'Insurance'],
-                [CLAIM_AMOUNT, fair_premium],
-                color=['#FF9999', '#99CC99'],
-                alpha=0.9,
+            # PLOT 1: Mobile visualization WITH SCATTER PLOT OVERLAY
+            # Blue bar chart for individual outcomes
+            ax1.bar(
+                ['Without Insurance'],
+                [CLAIM_AMOUNT],
+                color='#99CCFF',  # Light blue - brighter for mobile
+                alpha=0.3,
+                width=0.6,
+                label='Potential loss amount'
+            )
+
+            # Number of policyholders to display (limit for better mobile visualization)
+            display_n = min(50, num_policyholders)
+
+            # Overlay scatter plot showing actual outcomes - CRITICAL RESTORED ELEMENT
+            x_positions = np.ones(display_n) * 0  # All points at x=0 ("Without Insurance")
+            y_positions = individual_costs[:display_n]  # Each person's actual outcome
+
+            # Add jitter to x positions for better visualization
+            x_jitter = np.random.uniform(-0.2, 0.2, size=display_n)
+            x_positions += x_jitter
+
+            # Plot the actual outcomes as scatter points - RESTORED
+            ax1.scatter(
+                x_positions,
+                y_positions,
+                color='#3498DB',  # Brighter blue for mobile
+                alpha=0.8,
+                s=point_size,
+                label=f'Individual outcomes (n={display_n})'
+            )
+
+            # Add a bar for premium with insurance
+            ax1.bar(
+                ['With Insurance'],
+                [fair_premium],
+                color='#99CC99',  # Light green - brighter for mobile
+                alpha=0.7,
                 width=0.6,
                 linewidth=linewidth,
-                edgecolor=['#CC6666', '#66CC66']
+                edgecolor='#66CC66',
+                label='Insurance premium'
             )
 
             # Add bold bar labels - make them stand out more
@@ -108,9 +141,9 @@ def demonstrate_risk_pooling(accident_probability=0.05, num_policyholders=100, s
                      ha='center', va='center', fontsize=fontsize_annotations + 2,
                      fontweight='bold', color='#006600')
 
-            # Add clear annotations above bars with better contrasting backgrounds
+            # Add clear annotations with better contrasting backgrounds
             ax1.annotate(
-                f"{percent_with_loss:.1f}% face\nthis loss",
+                f"{num_with_loss} out of {num_policyholders}\nexperienced a ${CLAIM_AMOUNT:,} loss",
                 xy=(0, CLAIM_AMOUNT),
                 xytext=(0, CLAIM_AMOUNT * 1.05),
                 ha='center', fontsize=fontsize_annotations,
@@ -134,12 +167,16 @@ def demonstrate_risk_pooling(accident_probability=0.05, num_policyholders=100, s
             ax1.set_ylim(0, CLAIM_AMOUNT * 1.2)
             ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: '${:,.0f}'.format(x)))
 
+            # Add legend - RESTORED
+            ax1.legend(loc='upper center', fontsize=fontsize_annotations, framealpha=0.9,
+                       bbox_to_anchor=(0.5, 0.95))
+
             # Make axis lines thicker for better visibility
             ax1.spines['bottom'].set_linewidth(linewidth)
             ax1.spines['left'].set_linewidth(linewidth)
             ax1.tick_params(width=linewidth - 1, length=10)
 
-            # PLOT 2: Simplified pool visualization with better colors
+            # PLOT 2: Pool visualization with better colors
             outcome_is_surplus = pool_performance < 1
 
             # Choose colors based on outcome - blue for surplus, red for deficit
@@ -199,6 +236,12 @@ def demonstrate_risk_pooling(accident_probability=0.05, num_policyholders=100, s
             y_max = max(max_expected_loss, total_losses) * 1.1
             ax2.set_ylim(0, y_max)
             ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: '${:,.0f}'.format(x)))
+
+            # Add ratio annotation - RESTORED
+            ax2.text(1, total_losses + 0.05 * max(pool_premium_total, total_losses),
+                     f"Actual/Expected: {pool_performance:.2f}",
+                     ha='center', color=text_color, fontsize=fontsize_annotations,
+                     fontweight='bold')
 
             # Add a key insight box with formula at the bottom of the plot
             insight_text = f"Key Insight: More policyholders = more stable results\nActual/Expected Ratio = {pool_performance:.2f}"

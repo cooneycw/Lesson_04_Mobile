@@ -189,29 +189,36 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
             edgecolors='black'
         )
 
-        # Special version for mobile - make everything very clear
+        # RESTORED: Add frequency and severity lines for reference - even in mobile
+        # But make them more mobile-friendly
         if is_mobile:
-            # Make the grid more visible but not distracting
-            ax1.grid(True, alpha=0.5, linewidth=1.5, linestyle='--')
+            # Add with thicker lines for better visibility but still add both horizontal and vertical lines
+            ax1.axvline(x=base_frequency, color='lightgreen', linestyle='--', alpha=0.5, linewidth=2)
+            ax1.axvline(x=second_cohort_frequency, color='lightcoral', linestyle='--', alpha=0.5, linewidth=2)
 
-            # Make axis lines thicker for better visibility
-            ax1.spines['bottom'].set_linewidth(2)
-            ax1.spines['left'].set_linewidth(2)
-            ax1.tick_params(width=2)
+            ax1.axhline(y=base_severity, color='lightgreen', linestyle='--', alpha=0.5, linewidth=2)
+            ax1.axhline(y=second_cohort_severity, color='lightcoral', linestyle='--', alpha=0.5, linewidth=2)
 
-            # Just show the key average lines with thicker lines
-            ax1.axvline(x=first_avg_frequency, color='lightgreen', linestyle='--', alpha=0.7, linewidth=2)
-            ax1.axvline(x=second_avg_frequency, color='lightcoral', linestyle='--', alpha=0.7, linewidth=2)
-
-            # Bolder text for readability with background boxes
-            ax1.text(first_avg_frequency, ax1.get_ylim()[0] * 1.05,
-                     f"{first_cohort_name}\n{first_avg_frequency:.1%}",
+            # Annotations - slightly modified for mobile readability
+            ax1.text(base_frequency, ax1.get_ylim()[0] * 1.05,
+                     f"{first_cohort_name}\n{base_frequency:.1%}",
                      color='darkgreen', ha='center', va='bottom', rotation=90, fontsize=14,
                      fontweight='bold', bbox=dict(facecolor='white', alpha=0.7, pad=3, boxstyle='round'))
 
-            ax1.text(second_avg_frequency, ax1.get_ylim()[0] * 1.05,
-                     f"{second_cohort_name}\n{second_avg_frequency:.1%}",
+            ax1.text(second_cohort_frequency, ax1.get_ylim()[0] * 1.05,
+                     f"{second_cohort_name}\n{second_cohort_frequency:.1%}",
                      color='darkred', ha='center', va='bottom', rotation=90, fontsize=14,
+                     fontweight='bold', bbox=dict(facecolor='white', alpha=0.7, pad=3, boxstyle='round'))
+
+            # RESTORED: Horizontal line annotations - slightly modified for mobile
+            ax1.text(ax1.get_xlim()[0] * 1.05, base_severity,
+                     f"{base_severity:,.0f}",
+                     color='darkgreen', ha='left', va='center', fontsize=14,
+                     fontweight='bold', bbox=dict(facecolor='white', alpha=0.7, pad=3, boxstyle='round'))
+
+            ax1.text(ax1.get_xlim()[0] * 1.05, second_cohort_severity,
+                     f"{second_cohort_severity:,.0f}",
+                     color='darkred', ha='left', va='center', fontsize=14,
                      fontweight='bold', bbox=dict(facecolor='white', alpha=0.7, pad=3, boxstyle='round'))
         else:
             # Original reference lines
@@ -227,6 +234,15 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
             ax1.text(second_cohort_frequency, ax1.get_ylim()[0] * 1.05,
                      f"{second_cohort_name} Frequency: {second_cohort_frequency:.1%}",
                      color='darkred', ha='center', va='bottom', rotation=90)
+
+            # RESTORED: Horizontal line annotations
+            ax1.text(ax1.get_xlim()[0] * 1.05, base_severity,
+                     f"{first_cohort_name} Severity: ${base_severity:,.0f}",
+                     color='darkgreen', ha='left', va='center')
+
+            ax1.text(ax1.get_xlim()[0] * 1.05, second_cohort_severity,
+                     f"{second_cohort_name} Severity: ${second_cohort_severity:,.0f}",
+                     color='darkred', ha='left', va='center')
 
         # Format axes with updated terminology - larger text for mobile
         if is_mobile:

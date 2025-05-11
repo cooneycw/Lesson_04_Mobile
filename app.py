@@ -802,7 +802,7 @@ app_ui = ui.page_fluid(
                                 ui.output_plot("risk_pooling_plot",
                                                width="250%",
                                                height="1000px")  # Fixed pixel height
-                                )
+                            )
                             ),
                      ui.div({"class": "interpretation-box mobile-interpretation"},
                             ui.tags.pre(ui.output_text("risk_pooling_interpretation"))
@@ -878,7 +878,7 @@ app_ui = ui.page_fluid(
                                 ui.output_plot("driver_comparison_plot",
                                                width="250%",
                                                height="1000px")  # Fixed pixel height
-                                )
+                            )
                             ),
                      ui.div({"class": "interpretation-box mobile-interpretation"},
                             ui.tags.pre(ui.output_text("driver_comparison_interpretation"))
@@ -954,7 +954,7 @@ app_ui = ui.page_fluid(
                                 ui.output_plot("premium_calc_plot",
                                                width="250%",
                                                height="1200px")  # Fixed pixel height
-                                )
+                            )
                             ),
                      ui.div({"class": "interpretation-box mobile-interpretation"},
                             ui.tags.pre(ui.output_text("premium_calc_interpretation"))
@@ -979,7 +979,7 @@ app_ui = ui.page_fluid(
                                                  """
                                                  Insurance pricing relies on risk factors that predict future claims. 
                                                  Not all potential rating variables are acceptable for use.
-                     
+
                                                  For each item below, indicate if it would be appropriate to use
                                                  in setting auto insurance rates.
                                                  """
