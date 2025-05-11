@@ -460,6 +460,180 @@ mobile_nav_css = """
 }
 """
 
+# Mobile-specific CSS for better visualization and interaction
+mobile_optimized_css = """
+/* Mobile-friendly plot containers */
+.mobile-friendly-plot {
+    padding: 8px !important;
+    margin-bottom: 10px !important;
+    min-height: 700px !important;
+}
+
+/* HORIZONTAL SCROLLING for charts */
+.scrollable-plot-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important; 
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    padding: 5px 0 !important;
+}
+
+/* Make sure plots maintain size within scrollable container */
+.scrollable-plot-container .shiny-plot-output {
+    display: inline-block !important;
+    min-width: 250% !important; /* Increased from 150% to 250% for better readability */
+    max-width: none !important; /* Remove any max-width constraints */
+    height: auto !important; /* Height will scale with width */
+}
+
+/* Enhance the scroll indicator to make it more noticeable */
+.scroll-indicator {
+    text-align: center;
+    font-size: 14px !important;
+    font-style: italic;
+    color: #3498DB;
+    margin: 0 0 15px 0;
+    padding: 5px;
+    background-color: #F8F9FA;
+    border-radius: 5px;
+    border: 1px dashed #BDC3C7;
+}
+
+/* Larger mobile button */
+.mobile-button {
+    height: 60px !important;
+    font-size: 20px !important;
+    margin: 15px 0 !important;
+    border-radius: 10px !important;
+}
+
+/* Mobile interpretation box */
+.mobile-interpretation {
+    font-size: 16px !important;
+    padding: 15px !important;
+    line-height: 1.5 !important;
+    border-radius: 10px !important;
+    border-left-width: 8px !important;
+}
+
+.mobile-interpretation pre {
+    font-size: 16px !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+/* Better spacing between UI elements on mobile */
+@media (max-width: 768px) {
+    /* General spacing and sizing */
+    .shiny-input-container {
+        margin-bottom: 20px !important;
+    }
+
+    .form-group {
+        margin-bottom: 25px !important;
+    }
+
+    .module-description {
+        font-size: 16px !important;
+        padding: 10px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .plot-title {
+        font-size: 18px !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* Improved slider appearance */
+    .irs {
+        height: 70px !important;
+    }
+
+    .irs-min, .irs-max, .irs-single, .irs-from, .irs-to {
+        font-size: 14px !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+    }
+
+    .irs-handle {
+        width: 30px !important;
+        height: 30px !important;
+        top: 22px !important;
+    }
+
+    .irs-bar {
+        height: 10px !important;
+        top: 32px !important;
+    }
+
+    .irs-line {
+        height: 10px !important;
+        top: 32px !important;
+    }
+
+    /* Fix cut-off labels */
+    .plot-container {
+        padding-bottom: 40px !important;
+        margin-bottom: 25px !important;
+    }
+
+    /* Adjust padding within plot containers for better use of space */
+    .plot-container {
+        padding: 12px 5px !important;
+    }
+
+    /* Tab navigation */
+    .nav-tabs > li > a {
+        font-size: 16px !important;
+        padding: 15px 10px !important;
+    }
+
+    /* Seed info display */
+    .seed-info {
+        font-size: 14px !important;
+        margin: 5px 0 15px 0 !important;
+    }
+
+    /* Improved section spacing */
+    .title-box {
+        margin-bottom: 20px !important;
+    }
+
+    hr {
+        margin: 25px 0 !important;
+    }
+
+    /* Fix for collapsed/flattened plot heights */
+    .scrollable-plot-container {
+        min-height: 700px !important;
+        height: auto !important;
+    }
+
+    /* Set constraints on the plot images themselves */
+    .shiny-plot-output img {
+        min-height: 700px !important;
+        height: auto !important;
+        max-width: 250% !important;
+    }
+}
+
+/* Make touch scrolling more obvious with a subtle gradient indicator */
+.scrollable-plot-container:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 30px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.8));
+    pointer-events: none;
+}
+"""
+
+# Combine all CSS
+custom_css = custom_css + mobile_nav_css + mobile_optimized_css
+
 
 # Custom toggle switch HTML with larger touch targets for mobile
 def driver_toggle_switch():
@@ -530,6 +704,32 @@ $(document).ready(function() {
 });
 """
 
+# Script to enforce plot heights
+enforce_plot_height_js = """
+$(document).ready(function() {
+    // Force plots to maintain their height
+    function enforcePlotHeight() {
+        // Set explicit heights for plot containers
+        $(".shiny-plot-output").each(function() {
+            var height = $(this).attr('height');
+            if (height) {
+                $(this).css('min-height', height);
+                // Also set height on the actual image
+                $(this).find('img').css('min-height', height);
+            }
+        });
+    }
+
+    // Run initially and whenever plots are updated
+    enforcePlotHeight();
+    $(document).on('shiny:value', function(event) {
+        if (event.name.indexOf('_plot') > -1) {
+            setTimeout(enforcePlotHeight, 100);
+        }
+    });
+});
+"""
+
 # App UI - Modified for mobile responsiveness
 app_ui = ui.page_fluid(
     # Add viewport meta tag for mobile
@@ -539,61 +739,77 @@ app_ui = ui.page_fluid(
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         ),
         ui.tags.style(custom_css),
-        ui.tags.style(mobile_nav_css),
-        ui.tags.script(device_detection_js)
+        ui.tags.script(device_detection_js),
+        ui.tags.script(enforce_plot_height_js)
     ),
     ui.h1("Insurance Fundamentals", style="text-align: center; margin-bottom: 10px;"),
     ui.p("Interactive demonstrations of key insurance concepts", style="text-align: center; margin-bottom: 20px;"),
 
     ui.navset_tab(
-        # 1. RISK POOLING MODULE - Mobile Optimized
+        # 1. RISK POOLING MODULE - Mobile Optimized with direct height fix
         ui.nav_panel("1. Risk Pooling",
                      # Title in its own row
                      ui.row(
                          ui.column(12,
                                    ui.div({"class": "title-box"},
                                           ui.div({"class": "module-description"},
-                                                 "Risk pooling shows how insurance distributes risk."
+                                                 "How insurance spreads risk across many people"
                                                  )
                                           )
                                    )
                      ),
-                     # Sliders and button - mobile optimized layout
+
+                     # Mobile-optimized sliders - one per row for better touch targets
                      ui.row(
-                         ui.column(6,
+                         ui.column(12,
                                    ui.input_slider("accident_probability", "Accident Probability:",
                                                    min=0.01, max=0.25, value=0.05, step=0.01)
-                                   ),
-                         ui.column(6,
-                                   ui.input_slider("num_policyholders", "Number of Policyholders:",
-                                                   min=10, max=1000, value=100, step=10)
                                    )
                      ),
                      ui.row(
                          ui.column(12,
+                                   ui.input_slider("num_policyholders", "Number of Policyholders:",
+                                                   min=10, max=1000, value=100, step=10)
+                                   )
+                     ),
+
+                     # Large, easy-to-tap button
+                     ui.row(
+                         ui.column(12,
                                    ui.div({"class": "center-button"},
-                                          ui.input_action_button("resim_risk", "Re-simulate", class_="btn-resim")
+                                          ui.input_action_button("resim_risk", "Re-simulate",
+                                                                 class_="btn-resim btn-lg mobile-button")
                                           )
                                    )
                      ),
+
                      ui.row(
                          ui.column(12,
                                    ui.div({"class": "seed-info", "style": "text-align: center;"},
                                           ui.output_text("risk_seed_info"))
                                    )
                      ),
+
+                     # Main content - Direct height fix with huge pixel height
                      ui.hr(),
-                     # Main content with responsive height
                      ui.div({"class": "plot-container"},
-                            ui.div({"class": "plot-title"}, "Individual vs Pooled Risk"),
-                            ui.output_plot("risk_pooling_plot", width="100%", height="60vh")
+                            ui.div({"class": "plot-title"}, "Risk Pooling Visualization"),
+                            ui.div(
+                                {"style": "text-align: center; color: #666; font-style: italic; margin-bottom: 10px;"},
+                                "← Swipe horizontally to explore the full chart →"),
+                            ui.div(
+                                {"style": "overflow-x: auto; -webkit-overflow-scrolling: touch; position: relative;"},
+                                ui.output_plot("risk_pooling_plot",
+                                               width="250%",
+                                               height="1000px")  # Fixed pixel height
+                                )
                             ),
-                     ui.div({"class": "interpretation-box"},
+                     ui.div({"class": "interpretation-box mobile-interpretation"},
                             ui.tags.pre(ui.output_text("risk_pooling_interpretation"))
                             )
                      ),
 
-        # 2. DRIVER COMPARISON MODULE - Mobile Optimized
+        # 2. DRIVER COMPARISON MODULE - Mobile Optimized with direct height fix
         ui.nav_panel("2. Driver Comparison",
                      # Title in its own row
                      ui.row(
@@ -638,7 +854,8 @@ app_ui = ui.page_fluid(
                      ui.row(
                          ui.column(12,
                                    ui.div({"class": "center-button"},
-                                          ui.input_action_button("resim_drivers", "Re-simulate", class_="btn-resim")
+                                          ui.input_action_button("resim_drivers", "Re-simulate",
+                                                                 class_="btn-resim mobile-button")
                                           )
                                    )
                      ),
@@ -650,17 +867,25 @@ app_ui = ui.page_fluid(
                                    )
                      ),
                      ui.hr(),
-                     # Main content with responsive height
+                     # Main content with direct height fix
                      ui.div({"class": "plot-container"},
                             ui.div({"class": "plot-title"}, "Driver Risk Profiles"),
-                            ui.output_plot("driver_comparison_plot", width="100%", height="70vh")
+                            ui.div(
+                                {"style": "text-align: center; color: #666; font-style: italic; margin-bottom: 10px;"},
+                                "← Swipe horizontally to explore the full chart →"),
+                            ui.div(
+                                {"style": "overflow-x: auto; -webkit-overflow-scrolling: touch; position: relative;"},
+                                ui.output_plot("driver_comparison_plot",
+                                               width="250%",
+                                               height="1000px")  # Fixed pixel height
+                                )
                             ),
-                     ui.div({"class": "interpretation-box"},
+                     ui.div({"class": "interpretation-box mobile-interpretation"},
                             ui.tags.pre(ui.output_text("driver_comparison_interpretation"))
                             )
                      ),
 
-        # 3. PREMIUM CALCULATION MODULE - Mobile Optimized
+        # 3. PREMIUM CALCULATION MODULE - Mobile Optimized with direct height fix
         ui.nav_panel("3. Premium Calculation",
                      # Title in its own row
                      ui.row(
@@ -718,12 +943,20 @@ app_ui = ui.page_fluid(
                                    )
                      ),
                      ui.hr(),
-                     # Main content with mobile-friendly layout
+                     # Main content with direct height fix
                      ui.div({"class": "plot-container"},
                             ui.div({"class": "plot-title"}, "Premium Components"),
-                            ui.output_plot("premium_calc_plot", width="100%", height="120vh")
+                            ui.div(
+                                {"style": "text-align: center; color: #666; font-style: italic; margin-bottom: 10px;"},
+                                "← Swipe horizontally to explore the full chart →"),
+                            ui.div(
+                                {"style": "overflow-x: auto; -webkit-overflow-scrolling: touch; position: relative;"},
+                                ui.output_plot("premium_calc_plot",
+                                               width="250%",
+                                               height="1200px")  # Fixed pixel height
+                                )
                             ),
-                     ui.div({"class": "interpretation-box"},
+                     ui.div({"class": "interpretation-box mobile-interpretation"},
                             ui.tags.pre(ui.output_text("premium_calc_interpretation"))
                             )
                      ),
@@ -746,7 +979,7 @@ app_ui = ui.page_fluid(
                                                  """
                                                  Insurance pricing relies on risk factors that predict future claims. 
                                                  Not all potential rating variables are acceptable for use.
-
+                     
                                                  For each item below, indicate if it would be appropriate to use
                                                  in setting auto insurance rates.
                                                  """
@@ -850,7 +1083,7 @@ app_ui = ui.page_fluid(
                          ui.column(12,
                                    ui.div({"class": "center-button"},
                                           ui.input_action_button("grade_ethics", "Grade My Answers",
-                                                                 class_="btn-resim grade-btn")
+                                                                 class_="btn-resim grade-btn mobile-button")
                                           )
                                    )
                      ),
@@ -860,28 +1093,28 @@ app_ui = ui.page_fluid(
                      ),
                      # Add JavaScript for color coding - updated to replace gender with religion
                      ui.tags.script("""
-                    $(document).ready(function() {
-                        $('#grade_ethics').click(function() {
-                            // Wait a moment for the grade to be calculated
-                            setTimeout(function() {
-                                // Remove any existing coloring
-                                $('.ethics-question').removeClass('ethical-variable unethical-variable');
+            $(document).ready(function() {
+                $('#grade_ethics').click(function() {
+                    // Wait a moment for the grade to be calculated
+                    setTimeout(function() {
+                        // Remove any existing coloring
+                        $('.ethics-question').removeClass('ethical-variable unethical-variable');
 
-                                // Color the blocks based on correct answers
-                                $('#drake_rating_block').addClass('unethical-variable');
-                                $('#kendrick_rating_block').addClass('unethical-variable');
-                                $('#age_rating_block').addClass('ethical-variable');
-                                $('#vehicle_rating_block').addClass('ethical-variable');
-                                $('#religion_rating_block').addClass('unethical-variable');
-                                $('#race_rating_block').addClass('unethical-variable');
-                                $('#experience_rating_block').addClass('ethical-variable');
-                                $('#multiproduct_rating_block').addClass('ethical-variable');
-                                $('#speeding_rating_block').addClass('ethical-variable');
-                                $('#driving_rating_block').addClass('ethical-variable');
-                            }, 500);
-                        });
-                    });
-                    """)
+                        // Color the blocks based on correct answers
+                        $('#drake_rating_block').addClass('unethical-variable');
+                        $('#kendrick_rating_block').addClass('unethical-variable');
+                        $('#age_rating_block').addClass('ethical-variable');
+                        $('#vehicle_rating_block').addClass('ethical-variable');
+                        $('#religion_rating_block').addClass('unethical-variable');
+                        $('#race_rating_block').addClass('unethical-variable');
+                        $('#experience_rating_block').addClass('ethical-variable');
+                        $('#multiproduct_rating_block').addClass('ethical-variable');
+                        $('#speeding_rating_block').addClass('ethical-variable');
+                        $('#driving_rating_block').addClass('ethical-variable');
+                    }, 500);
+                });
+            });
+            """)
                      )
     )
 )
@@ -1022,24 +1255,22 @@ def server(input, output, session):
         _, stats = risk_data()
         claim_amount = 20000  # Fixed claim amount
 
-        # Shorter interpretation for mobile
+        # Much shorter, focused interpretation for mobile
         if is_mobile.get():
-            text = "Insurance Interpretation:\n"
-            text += f"• Individual Risk: {input.accident_probability():.1%} chance of ${claim_amount:,.0f} loss.\n"
-            text += f"• Without Insurance: {stats['num_with_loss']} people ({stats['percent_with_loss']:.1f}%) faced a loss.\n"
-            text += f"• With Insurance: Everyone pays ${stats['fair_premium']:,.0f}.\n"
-            text += f"• Pool Result: Collected ${stats['pool_premium_total']:,.0f}, paid ${stats['total_losses']:,.0f}.\n"
+            text = "KEY INSIGHTS:\n"
+            text += f"• Risk: {input.accident_probability():.1%} chance of ${claim_amount:,.0f} loss\n"
+            text += f"• Insurance: Everyone pays ${stats['fair_premium']:,.0f}\n"
 
+            # Highlight the outcome clearly
             if stats['pool_performance'] < 1:
-                text += f"• The pool had a ${abs(stats['pool_premium_total'] - stats['total_losses']):,.0f} surplus.\n"
+                text += f"• RESULT: Insurance had ${abs(stats['pool_premium_total'] - stats['total_losses']):,.0f} SURPLUS\n"
             else:
-                text += f"• The pool had a ${abs(stats['pool_premium_total'] - stats['total_losses']):,.0f} deficit.\n"
+                text += f"• RESULT: Insurance had ${abs(stats['pool_premium_total'] - stats['total_losses']):,.0f} DEFICIT\n"
 
-            text += f"• Key Insight: More policyholders = more stable results."
-
+            text += f"• More policyholders = more stable results"
             return text
         else:
-            # Original interpretation
+            # Original interpretation for desktop
             text = "Insurance Interpretation:\n"
             text += f"• Individual Risk: Each person has a {input.accident_probability():.1%} chance of a ${claim_amount:,.0f} loss.\n"
             text += f"• Without Insurance: {stats['num_with_loss']} people ({stats['percent_with_loss']:.1f}%) faced a ${claim_amount:,.0f} loss in this simulation.\n"
@@ -1358,7 +1589,7 @@ def server(input, output, session):
                 ui.HTML("""
             <p><b>Unethical rating variables</b> (shown in <span style="color: #E74C3C">red</span>) are usually 
             discriminatory, outside a person's control, or lack direct causal links to driving behavior.
-            These include race/ethnicity, religion, and music preferences.  Regulations prohibit their usage in rating.</p>
+            These include race/ethnicity, religion, and music preferences. Regulations prohibit their usage in rating.</p>
             """)
             )
 

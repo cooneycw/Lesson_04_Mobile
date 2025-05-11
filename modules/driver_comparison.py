@@ -37,6 +37,25 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
     stats : dict
         Key statistics (if return_fig is True)
     """
+    # Mobile optimizations for plot readability
+    if is_mobile:
+        # Increase font sizes for mobile scrollable view
+        plt.rcParams.update({
+            'font.size': 16,  # Larger base font size
+            'axes.titlesize': 18,  # Larger title font
+            'axes.labelsize': 16,  # Larger axis labels
+            'xtick.labelsize': 14,  # Larger x tick labels
+            'ytick.labelsize': 14,  # Larger y tick labels
+            'legend.fontsize': 14,  # Larger legend text
+            'figure.titlesize': 20  # Larger figure title
+        })
+
+        # Use brighter, more distinct colors for mobile
+        plt.rcParams.update({
+            'axes.prop_cycle': plt.cycler(
+                color=['#3498DB', '#2ECC71', '#E74C3C', '#9B59B6', '#F39C12', '#1ABC9C']),
+        })
+
     # Set random seed for reproducibility
     np.random.seed(seed)
 
@@ -54,8 +73,8 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
 
     # Number of drivers to simulate - reduce for mobile
     if is_mobile:
-        num_first_cohort = 100
-        num_second_cohort = 100
+        num_first_cohort = 80  # Further reduced for mobile
+        num_second_cohort = 80
     else:
         num_first_cohort = 200
         num_second_cohort = 200
@@ -92,14 +111,14 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
 
     # For Shiny integration
     if return_fig:
-        # Create figure - adjust size for mobile
+        # Create figure with adjusted size based on mobile or desktop view
         if is_mobile:
-            fig = Figure(figsize=(7, 8))
-            plt.rcParams.update({'font.size': 10})  # Increase base font size for readability
+            # Use a taller figure for mobile and scrolling
+            fig = Figure(figsize=(9, 14))
         else:
             fig = Figure(figsize=(10.5, 10))
 
-        # Create subplots - just use one main plot (we'll move the summary to the interpretation)
+        # Create subplot - simplify to just one plot
         ax1 = fig.add_subplot(111)  # Main scatterplot
 
         # Plot: Scatter plot of driver risk profiles
@@ -107,67 +126,93 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
         jitter_x_first = np.random.normal(0, 0.001, num_first_cohort)
         jitter_x_second = np.random.normal(0, 0.001, num_second_cohort)
 
-        # Point size - smaller for mobile
-        point_size = 30 if is_mobile else 70
+        # Point size - larger for mobile to be more touch-friendly
+        point_size = 80 if is_mobile else 70
 
-        # Scatter plot for first cohort
+        # Scatter plot for first cohort - brighter colors for mobile
+        if is_mobile:
+            first_color = '#2ECC71'  # Bright green
+            second_color = '#E74C3C'  # Bright red
+            first_edge = '#27AE60'  # Darker green edge
+            second_edge = '#C0392B'  # Darker red edge
+            alpha = 0.8  # More opaque for mobile
+        else:
+            first_color = 'green'
+            second_color = 'red'
+            first_edge = 'darkgreen'
+            second_edge = 'darkred'
+            alpha = 0.7
+
         ax1.scatter(
             first_cohort_frequencies + jitter_x_first,
             first_cohort_severities,
-            color='green',
-            alpha=0.7,
+            color=first_color,
+            alpha=alpha,
             s=point_size,
             label=f'{first_cohort_name}',
-            edgecolors='darkgreen'
+            edgecolors=first_edge
         )
 
         # Scatter plot for second cohort
         ax1.scatter(
             second_cohort_frequencies + jitter_x_second,
             second_cohort_severities,
-            color='red',
-            alpha=0.7,
+            color=second_color,
+            alpha=alpha,
             s=point_size,
             label=f'{second_cohort_name}',
-            edgecolors='darkred'
+            edgecolors=second_edge
         )
 
         # Add center points for each cluster - make them more prominent
-        center_point_size = 120 if is_mobile else 150
+        center_point_size = 200 if is_mobile else 150
 
         ax1.scatter(
             first_avg_frequency,
             first_avg_severity,
-            color='darkgreen',
+            color=first_edge,
             s=center_point_size,
             marker='*',
             label=f'{first_cohort_name} Avg' if is_mobile else f'{first_cohort_name} Average',
-            zorder=5  # Ensure it's on top
+            zorder=5,  # Ensure it's on top
+            edgecolors='black'
         )
 
         ax1.scatter(
             second_avg_frequency,
             second_avg_severity,
-            color='darkred',
+            color=second_edge,
             s=center_point_size,
             marker='*',
             label=f'{second_cohort_name} Avg' if is_mobile else f'{second_cohort_name} Average',
-            zorder=5  # Ensure it's on top
+            zorder=5,  # Ensure it's on top
+            edgecolors='black'
         )
 
-        # Simplified version for mobile - fewer reference lines
+        # Special version for mobile - make everything very clear
         if is_mobile:
-            # Just show the key average lines
-            ax1.axvline(x=first_avg_frequency, color='lightgreen', linestyle='--', alpha=0.5)
-            ax1.axvline(x=second_avg_frequency, color='lightcoral', linestyle='--', alpha=0.5)
+            # Make the grid more visible but not distracting
+            ax1.grid(True, alpha=0.5, linewidth=1.5, linestyle='--')
 
-            # Only add text labels to the average frequency lines, keep them shorter
+            # Make axis lines thicker for better visibility
+            ax1.spines['bottom'].set_linewidth(2)
+            ax1.spines['left'].set_linewidth(2)
+            ax1.tick_params(width=2)
+
+            # Just show the key average lines with thicker lines
+            ax1.axvline(x=first_avg_frequency, color='lightgreen', linestyle='--', alpha=0.7, linewidth=2)
+            ax1.axvline(x=second_avg_frequency, color='lightcoral', linestyle='--', alpha=0.7, linewidth=2)
+
+            # Bolder text for readability with background boxes
             ax1.text(first_avg_frequency, ax1.get_ylim()[0] * 1.05,
                      f"{first_cohort_name}\n{first_avg_frequency:.1%}",
-                     color='darkgreen', ha='center', va='bottom', rotation=90, fontsize=8)
+                     color='darkgreen', ha='center', va='bottom', rotation=90, fontsize=14,
+                     fontweight='bold', bbox=dict(facecolor='white', alpha=0.7, pad=3, boxstyle='round'))
+
             ax1.text(second_avg_frequency, ax1.get_ylim()[0] * 1.05,
                      f"{second_cohort_name}\n{second_avg_frequency:.1%}",
-                     color='darkred', ha='center', va='bottom', rotation=90, fontsize=8)
+                     color='darkred', ha='center', va='bottom', rotation=90, fontsize=14,
+                     fontweight='bold', bbox=dict(facecolor='white', alpha=0.7, pad=3, boxstyle='round'))
         else:
             # Original reference lines
             ax1.axvline(x=base_frequency, color='lightgreen', linestyle='--', alpha=0.5)
@@ -183,11 +228,11 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
                      f"{second_cohort_name} Frequency: {second_cohort_frequency:.1%}",
                      color='darkred', ha='center', va='bottom', rotation=90)
 
-        # Format axes with updated terminology - simplify for mobile
+        # Format axes with updated terminology - larger text for mobile
         if is_mobile:
-            ax1.set_xlabel('Accident Frequency', fontsize=11)
-            ax1.set_ylabel('Claim Amount ($)', fontsize=11)
-            ax1.set_title('Driver Risk Profiles', fontsize=12)
+            ax1.set_xlabel('Accident Frequency', fontsize=18, fontweight='bold')
+            ax1.set_ylabel('Claim Amount ($)', fontsize=18, fontweight='bold')
+            ax1.set_title('Driver Risk Profiles', fontsize=20, fontweight='bold')
         else:
             ax1.set_xlabel('Est. Accident Frequency (probability per year)', fontsize=12)
             ax1.set_ylabel('Est. Average Claim Amount ($)', fontsize=12)
@@ -195,7 +240,9 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
 
         # Move legend to top for better visibility on mobile
         if is_mobile:
-            ax1.legend(fontsize=9, loc='upper center', ncol=2)
+            # More prominent legend with larger font
+            ax1.legend(fontsize=14, loc='upper center', ncol=2,
+                       framealpha=0.9, edgecolor='#BDC3C7', frameon=True)
         else:
             ax1.legend(fontsize=12)
 
@@ -231,8 +278,24 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
             fig.tight_layout()
             fig.subplots_adjust(right=0.75)  # Make room for the summary box on the right
         else:
-            # For mobile, just use tight layout without the text box
+            # For mobile, add direct annotations to the chart
+            # Add a summary box at the top of the mobile chart
+            summary_box_text = (
+                f"Risk Comparison:\n"
+                f"• {first_cohort_name}: {first_avg_frequency:.1%} freq, ${first_avg_severity:,.0f} claims\n"
+                f"• {second_cohort_name}: {second_avg_frequency:.1%} freq, ${second_avg_severity:,.0f} claims\n"
+                f"• Difference: {second_total_losses / first_total_losses:.1f}x higher risk"
+            )
+
+            # Place at top of chart
+            props = dict(boxstyle='round', facecolor='#F8F9FA', alpha=0.9, ec='#BDC3C7')
+            ax1.text(0.5, 0.97, summary_box_text, fontsize=13,
+                     transform=ax1.transAxes, ha='center', va='top',
+                     bbox=props)
+
+            # Adjust for mobile scrolling with more padding
             fig.tight_layout()
+            fig.subplots_adjust(bottom=0.1, top=0.85)  # More space at top and bottom
 
         # Stats to return
         stats = {
@@ -260,7 +323,6 @@ def demonstrate_driver_comparison(base_frequency=0.05, base_severity=8000, bad_d
         fig = plt.figure(figsize=(14, 10))
 
         # Rest of the implementation would be similar to the return_fig=True case
-        # This is just a placeholder for compatibility
         plt.show()
 
         # Print statistics

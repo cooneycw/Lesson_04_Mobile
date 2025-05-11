@@ -38,6 +38,25 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
     stats : dict
         Key statistics (if return_fig is True)
     """
+    # Mobile optimizations for plot readability
+    if is_mobile:
+        # Increase font sizes for mobile scrollable view
+        plt.rcParams.update({
+            'font.size': 16,  # Larger base font size
+            'axes.titlesize': 18,  # Larger title font
+            'axes.labelsize': 16,  # Larger axis labels
+            'xtick.labelsize': 14,  # Larger x tick labels
+            'ytick.labelsize': 14,  # Larger y tick labels
+            'legend.fontsize': 14,  # Larger legend text
+            'figure.titlesize': 20  # Larger figure title
+        })
+
+        # Use brighter, more distinct colors for mobile
+        plt.rcParams.update({
+            'axes.prop_cycle': plt.cycler(
+                color=['#3498DB', '#2ECC71', '#E74C3C', '#9B59B6', '#F39C12', '#1ABC9C']),
+        })
+
     # Get driver names from the image filename
     good_driver_name = good_driver_image.split('.')[0].capitalize()
     bad_driver_name = "Kendrick" if good_driver_name == "Drake" else "Drake"
@@ -73,19 +92,19 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
         # Create figure with mobile-optimized layout
         if is_mobile:
             # For mobile, use a vertical layout with a more compact design
-            fig = Figure(figsize=(7, 14))
+            # Much taller figure for better display
+            fig = Figure(figsize=(9, 18))
 
-            # Use GridSpec for better control of spacing
-            gs = GridSpec(5, 1, height_ratios=[5, 5, 0.5, 3, 3], hspace=0.6, figure=fig)
+            # Use GridSpec for better control of spacing - more height for mobile
+            gs = GridSpec(7, 1, height_ratios=[4, 4, 1, 3, 3, 1, 1], hspace=0.3, figure=fig)
 
             # Plots in vertical arrangement
             ax1 = fig.add_subplot(gs[0])  # Good driver bar chart
             ax2 = fig.add_subplot(gs[1])  # Bad driver bar chart
+            # Spacer row at gs[2]
             ax3 = fig.add_subplot(gs[3])  # Good driver pie chart
             ax4 = fig.add_subplot(gs[4])  # Bad driver pie chart
-
-            # Increase font size for readability
-            plt.rcParams.update({'font.size': 10})
+            # Spacer rows at gs[5] and gs[6]
         else:
             # Original desktop layout
             fig = Figure(figsize=(14, 28))
@@ -101,13 +120,16 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
             ax3 = fig.add_subplot(gs[3, 0])  # Good driver pie chart
             ax4 = fig.add_subplot(gs[3, 1])  # Bad driver pie chart
 
-        # Component lists
+        # Component lists - shorter labels for mobile
         components = ['Loss', 'Expenses', 'Risk'] if is_mobile else ['Expected Loss', 'Expenses', 'Risk Margin']
         good_values = [expected_loss_good, expenses_good, risk_margin_good]
         bad_values = [expected_loss_bad, expenses_bad, risk_margin_bad]
 
-        # Colors for both charts (consistent, improved colors)
-        colors = ['#3498DB', '#2ECC71', '#9B59B6']  # Blue, Green, Purple
+        # Colors for both charts (bright colors for mobile)
+        if is_mobile:
+            colors = ['#3498DB', '#2ECC71', '#9B59B6']  # Bright blue, green, purple
+        else:
+            colors = ['#3498DB', '#2ECC71', '#9B59B6']  # Standard colors
 
         # Determine the maximum value for both y-axes
         y_max = max(premium_bad * 1.2, premium_good * 1.2)
@@ -115,36 +137,46 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
         # 1. GOOD DRIVER BAR CHART (TOP)
         bars1 = ax1.bar(components, good_values, color=colors, alpha=0.8, width=0.6)
 
-        # Adjust title for mobile
+        # Adjust title and make more prominent for mobile
         if is_mobile:
-            ax1.set_title(f'{good_driver_name} Premium', fontsize=12)
+            ax1.set_title(f'{good_driver_name} Premium', fontsize=18, fontweight='bold')
         else:
             ax1.set_title(f'{first_cohort_name} Premium Components', fontsize=14)
 
-        ax1.set_ylabel('Amount ($)', fontsize=10 if is_mobile else 12)
-        ax1.grid(axis='y', alpha=0.3)
+        ax1.set_ylabel('Amount ($)', fontsize=16 if is_mobile else 12)
+        ax1.grid(axis='y', alpha=0.4, linestyle='--')
         ax1.set_ylim(0, y_max)  # Same scale as other chart
 
-        # Add premium line
-        ax1.axhline(premium_good, color='#E74C3C', linestyle='--',
-                    label=f'Premium: ${premium_good:,.0f}')
+        # Make axis lines thicker for better visibility on mobile
+        if is_mobile:
+            ax1.spines['bottom'].set_linewidth(2)
+            ax1.spines['left'].set_linewidth(2)
+            ax1.tick_params(width=2)
+
+        # Add premium line - more visible for mobile
+        if is_mobile:
+            ax1.axhline(premium_good, color='#E74C3C', linestyle='--', linewidth=2.5,
+                        label=f'Premium: ${premium_good:,.0f}')
+        else:
+            ax1.axhline(premium_good, color='#E74C3C', linestyle='--',
+                        label=f'Premium: ${premium_good:,.0f}')
 
         # Adjust legend position and font size for mobile
         if is_mobile:
-            ax1.legend(fontsize=9, loc='upper left')
+            ax1.legend(fontsize=14, loc='upper left', framealpha=0.9)
         else:
             ax1.legend(fontsize=10, loc='upper left')
 
-        # Add dollar value labels - simplified for mobile
+        # Add dollar value labels - larger text for mobile
         for bar, value in zip(bars1, good_values):
             percentage = value / premium_good * 100
 
-            # Compact labels for mobile
+            # Compact but readable labels for mobile
             if is_mobile:
                 ax1.text(bar.get_x() + bar.get_width() / 2, value + (y_max * 0.01),
-                         f'${value:,.0f}',
+                         f'${value:,.0f}\n({percentage:.1f}%)',
                          ha='center', va='bottom',
-                         fontsize=8)
+                         fontsize=12, fontweight='bold')
             else:
                 ax1.text(bar.get_x() + bar.get_width() / 2, value + (y_max * 0.02),
                          f'${value:,.0f}\n({percentage:.1f}%)',
@@ -159,34 +191,44 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
 
         # Adjust title for mobile
         if is_mobile:
-            ax2.set_title(f'{bad_driver_name} Premium', fontsize=12)
+            ax2.set_title(f'{bad_driver_name} Premium', fontsize=18, fontweight='bold')
         else:
             ax2.set_title(f'{second_cohort_name} Premium Components', fontsize=14)
 
-        ax2.set_ylabel('Amount ($)', fontsize=10 if is_mobile else 12)
-        ax2.grid(axis='y', alpha=0.3)
+        ax2.set_ylabel('Amount ($)', fontsize=16 if is_mobile else 12)
+        ax2.grid(axis='y', alpha=0.4, linestyle='--')
         ax2.set_ylim(0, y_max)  # Same scale as other chart
 
+        # Make axis lines thicker for better visibility on mobile
+        if is_mobile:
+            ax2.spines['bottom'].set_linewidth(2)
+            ax2.spines['left'].set_linewidth(2)
+            ax2.tick_params(width=2)
+
         # Add premium line
-        ax2.axhline(premium_bad, color='#E74C3C', linestyle='--',
-                    label=f'Premium: ${premium_bad:,.0f}')
+        if is_mobile:
+            ax2.axhline(premium_bad, color='#E74C3C', linestyle='--', linewidth=2.5,
+                        label=f'Premium: ${premium_bad:,.0f}')
+        else:
+            ax2.axhline(premium_bad, color='#E74C3C', linestyle='--',
+                        label=f'Premium: ${premium_bad:,.0f}')
 
         # Adjust legend position and font size for mobile
         if is_mobile:
-            ax2.legend(fontsize=9, loc='upper left')
+            ax2.legend(fontsize=14, loc='upper left', framealpha=0.9)
         else:
             ax2.legend(fontsize=10, loc='upper left')
 
-        # Add dollar value labels - simplified for mobile
+        # Add dollar value labels - larger text for mobile
         for bar, value in zip(bars2, bad_values):
             percentage = value / premium_bad * 100
 
-            # Compact labels for mobile
+            # Compact but readable labels for mobile
             if is_mobile:
                 ax2.text(bar.get_x() + bar.get_width() / 2, value + (y_max * 0.01),
-                         f'${value:,.0f}',
+                         f'${value:,.0f}\n({percentage:.1f}%)',
                          ha='center', va='bottom',
-                         fontsize=8)
+                         fontsize=12, fontweight='bold')
             else:
                 ax2.text(bar.get_x() + bar.get_width() / 2, value + (y_max * 0.02),
                          f'${value:,.0f}\n({percentage:.1f}%)',
@@ -199,15 +241,21 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
         # 3. GOOD DRIVER PIE CHART
         # Adjust for mobile - simplify labels
         if is_mobile:
-            # Pie chart with no labels, just percentages
+            # Pie chart with bold percentages
             wedges, texts, autotexts = ax3.pie(
-                good_values, labels=None, colors=colors,
-                autopct='%1.1f%%', startangle=90, textprops={'fontsize': 9}
+                good_values, labels=components, colors=colors,
+                autopct='%1.1f%%', startangle=90,
+                textprops={'fontsize': 14, 'fontweight': 'bold'},
+                wedgeprops={'linewidth': 1, 'edgecolor': 'white'}
             )
 
-            # Add legend instead of labels
-            ax3.legend(components, loc='lower center', fontsize=9, bbox_to_anchor=(0.5, -0.1),
-                       ncol=3, frameon=False)
+            # Make text more readable
+            for text in texts:
+                text.set_fontweight('bold')
+
+            for autotext in autotexts:
+                autotext.set_color('white')
+                autotext.set_fontweight('bold')
         else:
             # Original pie chart with labels
             wedges, texts, autotexts = ax3.pie(
@@ -221,22 +269,28 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
 
         # Adjust title for mobile
         if is_mobile:
-            ax3.set_title(f'{good_driver_name}: ${premium_good:,.0f}', fontsize=11)
+            ax3.set_title(f'{good_driver_name}: ${premium_good:,.0f}', fontsize=16, fontweight='bold')
         else:
             ax3.set_title(f'{first_cohort_name} Premium: ${premium_good:,.2f}', fontsize=12)
 
         # 4. BAD DRIVER PIE CHART
         # Adjust for mobile - simplify labels
         if is_mobile:
-            # Pie chart with no labels, just percentages
+            # Pie chart with bold percentages
             wedges, texts, autotexts = ax4.pie(
-                bad_values, labels=None, colors=colors,
-                autopct='%1.1f%%', startangle=90, textprops={'fontsize': 9}
+                bad_values, labels=components, colors=colors,
+                autopct='%1.1f%%', startangle=90,
+                textprops={'fontsize': 14, 'fontweight': 'bold'},
+                wedgeprops={'linewidth': 1, 'edgecolor': 'white'}
             )
 
-            # Add legend instead of labels
-            ax4.legend(components, loc='lower center', fontsize=9, bbox_to_anchor=(0.5, -0.1),
-                       ncol=3, frameon=False)
+            # Make text more readable
+            for text in texts:
+                text.set_fontweight('bold')
+
+            for autotext in autotexts:
+                autotext.set_color('white')
+                autotext.set_fontweight('bold')
         else:
             # Original pie chart with labels
             wedges, texts, autotexts = ax4.pie(
@@ -250,7 +304,7 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
 
         # Adjust title for mobile
         if is_mobile:
-            ax4.set_title(f'{bad_driver_name}: ${premium_bad:,.0f}', fontsize=11)
+            ax4.set_title(f'{bad_driver_name}: ${premium_bad:,.0f}', fontsize=16, fontweight='bold')
         else:
             ax4.set_title(f'{second_cohort_name} Premium: ${premium_bad:,.2f}', fontsize=12)
 
@@ -263,14 +317,15 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
         premium_ratio = premium_bad / premium_good
 
         # Add premium difference summary - adjust for mobile
-        # Use a more compact design for mobile
-        props = dict(boxstyle='round,pad=0.3', facecolor='#3498DB', alpha=0.9)
+        # Use a more compact design for mobile with bolder text
+        props = dict(boxstyle='round,pad=0.5', facecolor='#3498DB', alpha=0.9, edgecolor='white')
 
         if is_mobile:
-            fig.text(0.5, 0.98,
-                     f"Difference: ${premium_diff:,.0f} ({premium_ratio:.1f}x)",
-                     ha='center', va='top', fontsize=10,
-                     color='white', bbox=props)
+            # Center the difference info between the bar charts and pie charts
+            fig.text(0.5, 0.5,
+                     f"Premium Difference:\n${premium_diff:,.0f} ({premium_ratio:.1f}x)",
+                     ha='center', va='center', fontsize=18,
+                     color='white', fontweight='bold', bbox=props)
         else:
             fig.text(0.5, 0.98,
                      f"Premium Difference: ${premium_diff:,.2f} ({premium_ratio:.1f}x higher for {second_cohort_name})",
@@ -284,10 +339,10 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
             bad_image_path = os.path.join("modules", f"{bad_driver_name.lower()}.jpeg")
 
             if os.path.exists(good_image_path) and os.path.exists(bad_image_path):
-                # Image zoom factor - smaller for mobile
-                zoom_factor = 0.25 if is_mobile else 0.40
+                # Image zoom factor - larger for mobile
+                zoom_factor = 0.35 if is_mobile else 0.40
 
-                # Position adjustment for mobile
+                # Position adjustment for mobile - move to upper right
                 position_x = 0.85 if is_mobile else 0.70
                 position_y = 0.85 if is_mobile else 0.70
 
@@ -301,7 +356,7 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
                                          box_alignment=(0.5, 0.5),  # Center alignment
                                          xycoords='axes fraction',
                                          pad=0.2,
-                                         bboxprops=dict(facecolor='white', alpha=0.6, boxstyle='round'))
+                                         bboxprops=dict(facecolor='white', alpha=0.8, boxstyle='round'))
                 ax1.add_artist(ab_good)
 
                 # Load bad driver image
@@ -314,7 +369,7 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
                                         box_alignment=(0.5, 0.5),  # Center alignment
                                         xycoords='axes fraction',
                                         pad=0.2,
-                                        bboxprops=dict(facecolor='white', alpha=0.6, boxstyle='round'))
+                                        bboxprops=dict(facecolor='white', alpha=0.8, boxstyle='round'))
                 ax2.add_artist(ab_bad)
             else:
                 print(f"Warning: Image file not found. Looking for: {good_image_path} and {bad_image_path}")
@@ -327,6 +382,14 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
                            f"• Loss = Frequency × Severity\n" \
                            f"• Expense = {expense_ratio:.0%}\n" \
                            f"• Risk = {risk_margin_ratio:.0%}"
+
+            # Box styling for mobile
+            props = dict(boxstyle='round', facecolor='#F8F9FA', ec='#BDC3C7', alpha=0.9)
+
+            # Add formula at bottom for mobile version - (coordinates are 0-1 proportion of figure)
+            fig.text(0.5, 0.08, formula_text, fontsize=16,
+                     ha='center', va='center', fontweight='bold',
+                     bbox=props)
         else:
             formula_text = f"Premium Calculation Formula:\n\n" \
                            f"Premium = Expected Loss / (1 - Expense% - Risk%)\n\n" \
@@ -335,17 +398,17 @@ def demonstrate_premium_calculation(accident_frequency=0.05, claim_severity=8000
                            f"• Expense Ratio = {expense_ratio:.0%}\n" \
                            f"• Risk Margin = {risk_margin_ratio:.0%}"
 
-        # Add formula text to figure - adjust position for mobile
-        props = dict(boxstyle='round', facecolor='#F2F4F4', ec='#BDC3C7', alpha=0.9)
-
-        if is_mobile:
-            # Add formula in the middle for mobile
-            fig.text(0.5, 0.48, formula_text, fontsize=9,
-                     ha='center', va='center', bbox=props)
-        else:
             # Original position for desktop
+            props = dict(boxstyle='round', facecolor='#F2F4F4', ec='#BDC3C7', alpha=0.9)
             fig.text(0.5, 0.02, formula_text, fontsize=11,
                      ha='center', va='bottom', bbox=props)
+
+        # Final layout adjustments for mobile
+        if is_mobile:
+            # Extra space for pie charts and formula
+            fig.subplots_adjust(hspace=1.0, top=0.97, bottom=0.16)
+        else:
+            fig.tight_layout()
 
         # Key statistics to return
         stats = {
